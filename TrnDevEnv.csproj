@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>library</OutputType>
+    <NoWarn>CA1050</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../IINACT/IINACT.csproj"/>

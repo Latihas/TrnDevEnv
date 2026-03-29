@@ -25,7 +25,7 @@ public class ScriptBA : IScriptBase {
 	public override List<TargetIcon> TargetIconList => [
 		new((tid, _) => RealPlugin.Instance.InvokeNamedCallback("command", $"/e 分摊：{ProxyPlugin.ObjectTable.First(i => i.Address.ToInt32() == (int)tid).Name}"), Id: 0x003E),
 		new((tid, _) => RealPlugin.Instance.InvokeNamedCallback("command", $"/e 即将加速度判定：{ProxyPlugin.ObjectTable.First(i => i.Address.ToInt32() == (int)tid).Name}"), Id: 0x004B),
-		new((tid, _) => RealPlugin.Instance.InvokeNamedCallback("command", $"/e 陨石：{ProxyPlugin.ObjectTable.First(i => i.Address.ToInt32() == (int)tid).Name}"), Id: 0x0039),
+		new((tid, _) => RealPlugin.Instance.InvokeNamedCallback("command", $"/e 陨石：{ProxyPlugin.ObjectTable.First(i => i.Address.ToInt32() == (int)tid).Name}"), Id: 0x0039)
 	];
 	private readonly Action<ulong, int, ulong> a = (src, _, dst) => {
 		TTS("范围死刑");
@@ -63,10 +63,10 @@ public class ScriptBA : IScriptBase {
 		new(() => p("《狂暴》法系[催眠]【兵武半人马】"), Id: 0x3BFE),
 		new(() => p("《魔法锤》近战[下踢]【兵武比布鲁斯】"), Id: 0x3BFD),
 		new(() => p("《昏暗之章》近战[下踢]【兵武博学林鸮】"), Id: 0x3C0D),
-		new(() => p("《玩具锤》法系[催眠]【兵武智蛙】"), Id: 0x3C03),
+		new(() => p("《玩具锤》法系[催眠]【兵武智蛙】"), Id: 0x3C03)
 	];
 
-	void p(string s) {
+	private void p(string s) {
 	}
 
 	public override List<(Regex, Action<GroupCollection>)> CustomList => [

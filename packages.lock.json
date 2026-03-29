@@ -8,12 +8,6 @@
         "resolved": "1.2.39",
         "contentHash": "fcFN01tDTIQqDuTwr1jUQK/geofiwjG5DycJQOnC72i1SsLAk1ELe+apBOuZ11UMQG8YKFZG1FgvjZPbqHyatg=="
       },
-      "Microsoft.NET.ILLink.Tasks": {
-        "type": "Direct",
-        "requested": "[10.0.4, )",
-        "resolved": "10.0.4",
-        "contentHash": "CCx8ojW3mOL150/LnP0DK7qpMrJEt6xxNCmJFKoX89v1h0FwpsEHqennowGPYDxp6zIkIO4f9PxynjOeLF+1zw=="
-      },
       "CsvHelper": {
         "type": "Transitive",
         "resolved": "33.1.0",
@@ -226,6 +220,11 @@
         "resolved": "10.0.5",
         "contentHash": "MYkGiMGWYc9rhyvsmf2UGIHD4RVJ3+uNgllFPP1YW6ILJJDXpDN8jMcy++0E/KrG507kTPCo5EOW4tEwUOCKhQ=="
       },
+      "WebSocketSharp-netstandard": {
+        "type": "Transitive",
+        "resolved": "1.0.1",
+        "contentHash": "knoinAv31vbdxXdypnzN2MPX5hyntVLWceq6OdWRXkr9zzqp/RWbxSuLFGbkW8De1061URgNAN43BUTlgMx1CA=="
+      },
       "Advanced Combat Tracker": {
         "type": "Project"
       },
@@ -328,7 +327,8 @@
           "SharpDX.Direct2D1": "[*, )",
           "SharpDX.Direct3D11": "[*, )",
           "System.Management": "[*, )",
-          "System.Speech": "[*, )"
+          "System.Speech": "[*, )",
+          "WebSocketSharp-netstandard": "[*, )"
         }
       },
       "Unscrambler.XIV.CN": {

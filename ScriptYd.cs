@@ -10,7 +10,7 @@ public class ScriptYd : IScriptBase {
 		新月流
 	}
 
-	public override uint? TerritoryIds() => 1318;
+	public override uint[]? TerritoryIds() => [1318];
 	private YdStatus? ydStatus;
 	public override List<TargetIcon> TargetIconList => [
 		new(MTTS("点你分散", 1000), Me_HexID, 0x0017),

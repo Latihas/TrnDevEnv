@@ -13,7 +13,7 @@ using static Triggernometry.PScript.ScriptUtils;
 public class ScriptBA : IScriptBase {
 	public string mdbw = "";
 	public int count_bird, count_bbls;
-	public override uint? TerritoryIds() => 827;
+	public override uint[]? TerritoryIds() => [827];
 
 	public bool inRect(Entity entity, Vector4 rect) {
 		var x = entity.PosX;

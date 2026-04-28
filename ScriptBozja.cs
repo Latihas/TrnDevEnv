@@ -4,10 +4,11 @@ using Triggernometry.PScript;
 using static Triggernometry.PScript.ScriptUtils;
 
 public class Bozja : IScriptBase {
-	public override uint[]? TerritoryIds() => [920, 975];
+	public override uint[] TerritoryIds() => [920, 975];
 
 	public override List<StartsCasting> StartsCastingList => [
 		new(MTTS("死刑，绕后"), Id: 0x5ECB), //左臂斩击
+		new(MTTS("击退后穿"), Id: 0x5EBB), //左臂金属切割刀
 		new(() => {
 			DelayExec(MTTS("开光之幕帘"), 3000);
 		}, Id: 0x5D5D), //无情交火

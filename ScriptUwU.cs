@@ -9,12 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Advanced_Combat_Tracker;
 using Triggernometry.Core;
+using Triggernometry.Core.Variables;
 using Triggernometry.PluginBridges;
 using Triggernometry.PScript;
 using Triggernometry.UI.CustomControls;
 using Triggernometry.UI.Forms;
 using static Triggernometry.Core.Scripting.ScriptHelper;
-using static Triggernometry.FFXIV.Job.RoleType;
 using static Triggernometry.PScript.ScriptUtils;
 
 [SuppressMessage("Performance", "SYSLIB1045")]
@@ -55,7 +55,8 @@ public class ScriptUwU : IScriptBase {
 			ActGlobals.oFormActMain.EndCombat(false);
 			ResetCts();
 			RealPlugin.Instance.InvokeNamedCallback("PictoACT", "Action:Remove");
-			//p0init
+			InitParams();
+			PostTip($"已使用{MyJob}进行初始化");
 		}),
 		//通用技能
 		new(new Regex(@"^.{14} StartsCasting 14:.{8}:[^:]+:2B88:"), _ => {
@@ -406,27 +407,7 @@ public class ScriptUwU : IScriptBase {
 				case "death": //id
 					Death(ss[1]);
 					break;
-				case "p0init": //str:job
-					if (str.Contains(':')) {
-						var tmp = ss[1].Split(',')[0].ToUpper();
-						if (JobOrder.All(j => j.ToString() != tmp)) {
-							if (tmp == nameof(Tank).ToUpper()) MyJob = Jobs.MT;
-							if (tmp == nameof(PureHealer).ToUpper()) MyJob = Jobs.H1;
-							if (tmp == nameof(BarrierHealer).ToUpper()) MyJob = Jobs.H2;
-							if (tmp == nameof(StrengthMelee).ToUpper()) MyJob = Jobs.D1;
-							if (tmp == nameof(DexterityMelee).ToUpper()) MyJob = Jobs.D2;
-							if (tmp == nameof(PhysicalRanged).ToUpper()) MyJob = Jobs.D3;
-							if (tmp == nameof(MagicalRanged).ToUpper()) MyJob = Jobs.D4;
-						} else {
-							if (Enum.TryParse<Jobs>(tmp, out var j))
-								MyJob = j;
-						}
-						GetPartyOrderInit(ss[1]);
-					} else if (MyJob != null) {
-						InitParams();
-						PostTip($"已使用{MyJob}进行初始化");
-					}
-					break;
+
 				case "p2zhuzi23": //vois
 					p2zhuzi23();
 					break;
@@ -1501,8 +1482,27 @@ public class ScriptUwU : IScriptBase {
 			configForm.AddOption(P3VFXMode, VFXSetting);
 			configForm.AddOption(Umarklocal, VFXSetting);
 			configForm.AddOption(P5VFXMode, VFXSetting);
-			configForm.AddPartyGroup(" 队员顺序保证和游戏内一致 ", new PartyListPanel(["MT", "ST", "H1", "H2", "D1", "D2", "D3", "D4"]));
+			configForm.AddPartyGroup(" 队员顺序保证和游戏内一致 ", new PartyListPanel(Enum.GetValues<Jobs>().Select(i => i.ToString()).ToArray()));
 			configForm.Run();
+			configForm.FormClosing += (_, _) => {
+				var vs = RealPlugin.Instance.GetVariableStore(false);
+				var valid = false;
+				lock (vs.List) {
+					if (vs.List.TryGetValue("pname", out var variable)) {
+						valid = variable.Size == 8 && variable.Values.All(i => !string.IsNullOrEmpty((i as VariableScalar)?.Value));
+					}
+				}
+				if (valid) {
+					lock (vs.Scalar) {
+						if (vs.Scalar.TryGetValue("myIdx", out var variable)) {
+							if (int.TryParse(variable.Value, out var v)) {
+								MyJob = (Jobs)(v - 1);
+								// GetPartyOrderInit(ss[1]);//TODO
+							}
+						}
+					}
+				}
+			};
 		}
 
 		[STAThread]

@@ -7,6 +7,20 @@
   <ItemGroup>
     <ProjectReference Include="../IINACT/IINACT.csproj"/>
   </ItemGroup>
+	<ItemGroup>
+		<Content Include="publish\scripts\ScriptBozja.cs">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>scripts\ScriptBozja.cs</TargetPath>
+		</Content>
+		<Content Include="publish\scripts\ScriptSl.cs">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>scripts\ScriptSl.cs</TargetPath>
+		</Content>
+		<Content Include="publish\scripts\ScriptYd.cs">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>scripts\ScriptYd.cs</TargetPath>
+		</Content>
+	</ItemGroup>
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == ''">
     <DalamudLibPath>$(appdata)/XIVLauncherCN/addon/Hooks/dev</DalamudLibPath>
     <AssemblySearchPaths>$(AssemblySearchPaths);$(DalamudLibPath)</AssemblySearchPaths>

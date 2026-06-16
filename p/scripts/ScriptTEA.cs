@@ -4,7 +4,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Triggernometry.FFXIV;
 using Triggernometry.PScript;
 using static Triggernometry.PScript.ScriptUtils;
@@ -14,12 +13,7 @@ public class ScriptTEA : IScriptBase {
 	private CancellationTokenSource? ctssimple, ctsp1, ctsp2, ctsp3, ctsp4, ctsp5;
 	public override bool IsDev => true;
 
-	public override void InitPlugin(TabPage pluginScreenSpace, Label pluginStatusText) =>
-		DrawShape(dot = new IGDot(Me_Position, 6));
-
-	public virtual uint[] TerritoryIds() => [887];
 	private string? id_shuijilao, id_huoshuizhishou;
-	public override void DeInitPlugin() => dot.toRemove = true;
 
 	private void CheckP1HpDelta() {
 		if (id_shuijilao == null || id_huoshuizhishou == null) return;

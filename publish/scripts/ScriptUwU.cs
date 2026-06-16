@@ -76,6 +76,8 @@ public class ScriptUwU : IScriptBase {
 		new(new Regex(@"^.{15}\S+ 00:0038:: *[Cc][Ff][Gg] +(?:绝神兵|UWU) *$"), ShowConfigForm)
 	];
 
+	public override void DeInitPlugin() => ResetCts();
+
 	public override List<(Regex, Action<GroupCollection>)> CustomList => [
 		new(new Regex(@"^.{15}\S+ 01:"), ShowConfigForm),
 		new(new Regex(@"^.{14} Director 21:.{8}:400000(?:03|1[026]|05|11)"), _ => {
@@ -1281,7 +1283,7 @@ public class ScriptUwU : IScriptBase {
 
 	private void NEWp3ygjd(string x, string y) {
 		string ygjddir;
-		var isRight = x == "95.00" && (y == "111.00" || y == "112.00") ||
+		var isRight = x == "95.00" && y is "111.00" or "112.00" ||
 		              x == "88.00" && y == "95.00" ||
 		              x == "105.00" && y == "88.00" ||
 		              x == "112.00" && y == "105.00";

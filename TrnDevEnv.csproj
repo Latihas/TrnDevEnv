@@ -16,9 +16,10 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<TargetPath>scripts\ScriptSl.cs</TargetPath>
 		</Content>
-		<Content Include="publish\scripts\ScriptYd.cs">
+		<Content Include="ScriptYd.cs">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<TargetPath>scripts\ScriptYd.cs</TargetPath>
+			<Link>scripts\ScriptYd.cs</Link>
 		</Content>
 	</ItemGroup>
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == ''">

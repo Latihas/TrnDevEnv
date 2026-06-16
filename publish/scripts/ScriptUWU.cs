@@ -22,6 +22,7 @@ using static Triggernometry.PScript.ScriptUtils;
 [SuppressMessage("Performance", "SYSLIB1045")]
 [SuppressMessage("Performance", "CS8509")]
 public class ScriptUwU : IScriptBase {
+	public override bool IsDev => true;
 	private static ScriptUwU Instance = null!;
 	private static readonly GameConfigForm.ConfigInfo Info = new("绝神兵宝宝椅", "3.9", "Laihas, Nag0mi, 莫灵喵", "UWU_cfg");
 	private static Jobs? MyJob;

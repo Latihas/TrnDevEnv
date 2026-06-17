@@ -11,10 +11,23 @@ using static Triggernometry.PScript.ScriptUtils;
 
 public class ScriptTEA : IScriptBase {
 	private CancellationTokenSource? ctsp1, ctsp2, ctsp3;
+
+	private enum State {
+		None,
+		P1,
+		P2,
+		P3,
+		P4
+	}
+
+	private State state = State.None;
 	public override bool IsDev => true;
 	private string? id_shuijilao, id_huoshuizhishou;
-	public override uint[] TerritoryIds() => [887];
+	private bool p2lei, p2shui;
+
+	// public override uint[] TerritoryIds() => [887];
 	public override void DeInitPlugin() => ResetCts();
+
 	private void CheckP1HpDelta() {
 		if (id_shuijilao == null || id_huoshuizhishou == null) return;
 		var shuijilao = Entity.GetEntityByID(id_shuijilao);
@@ -32,6 +45,7 @@ public class ScriptTEA : IScriptBase {
 			ResetCts();
 			InitParams();
 		}),
+
 		#region P1
 
 		new(new Regex(@"^.{14} (?:\w+ )25:(?<id>[0-9A-F]{8}):(有生命活水|living liquid|リビングリキッド):"), g => {
@@ -44,10 +58,12 @@ public class ScriptTEA : IScriptBase {
 			TTS("水球出现");
 		}),
 		new(new Regex(@"^.{14} StartsCasting 14:.{8}:[^:]*:4826:"), g => {
+			if (state != State.None) return;
 			InitParams();
 			ctsp1 = new();
 			var token = ctsp1.Token;
 			Task.Run(async () => {
+				state = State.P1;
 				TTS("全屏AOE");
 				await Task.Delay(6000, token);
 				TTS("处理猜拳");
@@ -88,21 +104,37 @@ public class ScriptTEA : IScriptBase {
 
 		#region P15
 
-		new(new Regex(@"^.{14} TargetIcon 1B:.{8}:(?<player>.*?):(?:[^:]*:){2}(?<shadow_id>00(4F|5[0123456])):.{8}:"), g => {
+		new(new Regex(@"^.{14} TargetIcon 1B:(?<targetId>.{8}):(?<player>.*?):(?:[^:]*:){2}(?<shadow_id>00(4F|5[0123456])):.{8}:"), g => {
+			ctsp1?.Cancel();
+			ctsp1?.Dispose();
 			var mjid = Convert.ToInt32(g["shadow_id"].Value, 16) - 0x4F + 1;
-			var sb = new StringBuilder(mjid.ToString());
-			sb.Append("号，");
-			sb.Append(mjid switch {
-				1 => "内圈领跑",
-				2 => "内圈跟随",
-				3 => "内圈领跑",
-				4 => "内圈跟随",
-				5 => "外圈领跑",
-				6 => "外圈跟随",
-				7 => "外圈领跑",
-				8 => "外圈跟随"
-			});
-			TTS(sb.ToString());
+			if (g["targetId"].Value == Me_HexID().ToString("X8")) {
+				var sb = new StringBuilder(mjid.ToString());
+				sb.Append("号，");
+				if (state == State.P1)
+					sb.Append(mjid switch {
+						1 => "内圈领跑",
+						2 => "内圈跟随",
+						3 => "内圈领跑",
+						4 => "内圈跟随",
+						5 => "外圈领跑",
+						6 => "外圈跟随",
+						7 => "外圈领跑",
+						8 => "外圈跟随"
+					});
+				else if (state == State.P3)
+					sb.Append(mjid switch {
+						1 => "面朝外，踩第三次灵泉",
+						2 => "面朝内，踩第三次灵泉",
+						3 => "面朝外，引导超级跳",
+						4 => "面朝内，引导超级跳",
+						5 => "面朝外，踩第一次灵泉",
+						6 => "面朝内，踩第一次灵泉",
+						7 => "面朝外，踩第二次灵泉",
+						8 => "面朝内，踩第二次灵泉"
+					});
+				TTS(sb.ToString());
+			}
 		}),
 
 		#endregion
@@ -110,11 +142,10 @@ public class ScriptTEA : IScriptBase {
 		#region P2
 
 		new(new Regex(@"^.{14} (?:\w+ )14:.{8}:[^:]*:483E:"), g => {
-			ctsp1?.Cancel();
-			ctsp1?.Dispose();
 			ctsp2 = new();
 			var token = ctsp2.Token;
 			Task.Run(async () => {
+				state = State.P2;
 				TTS("上毒");
 				await Task.Delay(6500, token);
 				TTS("场外飞盘");
@@ -144,6 +175,8 @@ public class ScriptTEA : IScriptBase {
 			if (ctsp2 == null) return;
 			var token = ctsp2.Token;
 			Task.Run(async () => {
+				if (p2shui) return;
+				p2shui = true;
 				TTS(g["id"].Value == Me_HexID().ToString("X8") ? "水分摊点你" : "下次水分摊");
 				await Task.Delay(24000, token);
 				TTS("5秒后水分摊");
@@ -159,6 +192,8 @@ public class ScriptTEA : IScriptBase {
 			if (ctsp2 == null) return;
 			var token = ctsp2.Token;
 			Task.Run(async () => {
+				if (p2lei) return;
+				p2lei = true;
 				TTS(g["id"].Value == Me_HexID().ToString("X8") ? "雷分摊点你" : "下次雷分摊");
 				await Task.Delay(24000, token);
 				TTS("5秒后雷分摊");
@@ -181,6 +216,7 @@ public class ScriptTEA : IScriptBase {
 			ctsp3 = new();
 			var token = ctsp3.Token;
 			Task.Run(async () => {
+				state = State.P3;
 				Place("A:100,85;B:115,100;C:100,115;D:85,100;1:95,100;2:105,100");
 				TTS("时间停止");
 				await Task.Delay(22000, token);
@@ -248,5 +284,6 @@ public class ScriptTEA : IScriptBase {
 	private void InitParams() {
 		id_shuijilao = null;
 		id_huoshuizhishou = null;
+		state = State.None;
 	}
 }

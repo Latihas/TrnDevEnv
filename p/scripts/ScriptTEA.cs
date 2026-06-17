@@ -4,17 +4,17 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Advanced_Combat_Tracker;
 using Triggernometry.FFXIV;
 using Triggernometry.PScript;
 using static Triggernometry.PScript.ScriptUtils;
 
 public class ScriptTEA : IScriptBase {
-	private IGDot dot = null!;
-	private CancellationTokenSource? ctssimple, ctsp1, ctsp2, ctsp3, ctsp4, ctsp5;
+	private CancellationTokenSource? ctsp1, ctsp2, ctsp3;
 	public override bool IsDev => true;
-
 	private string? id_shuijilao, id_huoshuizhishou;
-
+	public override uint[] TerritoryIds() => [887];
+	public override void DeInitPlugin() => ResetCts();
 	private void CheckP1HpDelta() {
 		if (id_shuijilao == null || id_huoshuizhishou == null) return;
 		var shuijilao = Entity.GetEntityByID(id_shuijilao);
@@ -26,6 +26,12 @@ public class ScriptTEA : IScriptBase {
 	}
 
 	public override List<(Regex, Action<GroupCollection>)> CustomList => [
+		new(new Regex(@"^.{14} Director 21:.{8}:400000(?:03|1[026]|05|11)"), _ => {
+			ActGlobals.oFormActMain.EndCombat(false);
+			ClearAllIGShape();
+			ResetCts();
+			InitParams();
+		}),
 		#region P1
 
 		new(new Regex(@"^.{14} (?:\w+ )25:(?<id>[0-9A-F]{8}):(有生命活水|living liquid|リビングリキッド):"), g => {
@@ -34,11 +40,10 @@ public class ScriptTEA : IScriptBase {
 		new(new Regex(@"^.{14} (?:\w+ )25:(?<id>[0-9A-F]{8}):(活水之手|liquid limb|リキッドハンド):"), g => {
 			id_huoshuizhishou = g["id"].Value;
 		}),
-		new(new Regex(@"^.{14} (?:\w+ )03:.{8}:(栓塞|embolus|エンボラス):"), g => {
+		new(new Regex(@"^.{14} AddCombatant 03:.{8}:.+:9215:"), g => {
 			TTS("水球出现");
 		}),
-		new(new Regex(@"^.{14} (?:\w+ )14:.{8}:[^:]*:4826:"), g => {
-			ResetCts();
+		new(new Regex(@"^.{14} StartsCasting 14:.{8}:[^:]*:4826:"), g => {
 			InitParams();
 			ctsp1 = new();
 			var token = ctsp1.Token;
@@ -76,14 +81,14 @@ public class ScriptTEA : IScriptBase {
 				TTS("处理猜拳");
 				await Task.Delay(6000, token);
 				CheckP1HpDelta();
-			});
+			}, token);
 		}),
 
 		#endregion
 
 		#region P15
 
-		new(new Regex(@"^.{14} (?:\w+ )1B:1[0-9A-Z]{7}:(?<player>.*?):(?:[^:]*:){2}(?<shadow_id>00(4F|5[0123456])):.{8}:"), g => {
+		new(new Regex(@"^.{14} TargetIcon 1B:.{8}:(?<player>.*?):(?:[^:]*:){2}(?<shadow_id>00(4F|5[0123456])):.{8}:"), g => {
 			var mjid = Convert.ToInt32(g["shadow_id"].Value, 16) - 0x4F + 1;
 			var sb = new StringBuilder(mjid.ToString());
 			sb.Append("号，");
@@ -133,7 +138,7 @@ public class ScriptTEA : IScriptBase {
 				TTS("加油啊！残暴正义号！");
 				await Task.Delay(3000, token);
 				TTS("干翻他们");
-			});
+			}, token);
 		}),
 		new(new Regex(@"^.{14} StatusList 26:(?<id>[0-9A-F]{8}):(?<name>[^:]+):.*:085E:"), g => {
 			if (ctsp2 == null) return;
@@ -229,6 +234,15 @@ public class ScriptTEA : IScriptBase {
 	];
 
 	private void ResetCts() {
+		ctsp1?.Cancel();
+		ctsp1?.Dispose();
+		ctsp1 = null;
+		ctsp2?.Cancel();
+		ctsp2?.Dispose();
+		ctsp2 = null;
+		ctsp3?.Cancel();
+		ctsp3?.Dispose();
+		ctsp3 = null;
 	}
 
 	private void InitParams() {

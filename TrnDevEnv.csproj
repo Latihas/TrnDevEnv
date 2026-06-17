@@ -7,7 +7,6 @@
 	<ItemGroup>
 		<ProjectReference Include="../IINACT/IINACT.csproj"/>
 	</ItemGroup>
-
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == ''">
 		<DalamudLibPath>$(appdata)/XIVLauncherCN/addon/Hooks/dev</DalamudLibPath>
 		<AssemblySearchPaths>$(AssemblySearchPaths);$(DalamudLibPath)</AssemblySearchPaths>

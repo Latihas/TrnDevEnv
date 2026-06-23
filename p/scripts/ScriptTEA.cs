@@ -2,22 +2,19 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Advanced_Combat_Tracker;
 using Triggernometry.FFXIV;
 using Triggernometry.PScript;
+using TriggernometryProxy;
 using static Triggernometry.PScript.ScriptUtils;
 
 public class ScriptTEA : IScriptBase {
-	private CancellationTokenSource? ctsp1, ctsp2, ctsp3;
-
 	private enum State {
 		None,
 		P1,
 		P2,
-		P3,
-		P4
+		P3
 	}
 
 	private State state = State.None;
@@ -25,7 +22,7 @@ public class ScriptTEA : IScriptBase {
 	private string? id_shuijilao, id_huoshuizhishou;
 	private bool p2lei, p2shui;
 
-	// public override uint[] TerritoryIds() => [887];
+	public override uint[] TerritoryIds() => [887];
 	public override void DeInitPlugin() => ResetCts();
 
 	private void CheckP1HpDelta() {
@@ -38,30 +35,11 @@ public class ScriptTEA : IScriptBase {
 			TTS("快打手");
 	}
 
-	public override List<(Regex, Action<GroupCollection>)> CustomList => [
-		new(new Regex(@"^.{14} Director 21:.{8}:400000(?:03|1[026]|05|11)"), _ => {
-			ActGlobals.oFormActMain.EndCombat(false);
-			ClearAllIGShape();
-			ResetCts();
-			InitParams();
-		}),
-
-		#region P1
-
-		new(new Regex(@"^.{14} (?:\w+ )25:(?<id>[0-9A-F]{8}):(有生命活水|living liquid|リビングリキッド):"), g => {
-			id_shuijilao = g["id"].Value;
-		}),
-		new(new Regex(@"^.{14} (?:\w+ )25:(?<id>[0-9A-F]{8}):(活水之手|liquid limb|リキッドハンド):"), g => {
-			id_huoshuizhishou = g["id"].Value;
-		}),
-		new(new Regex(@"^.{14} AddCombatant 03:.{8}:.+:9215:"), g => {
-			TTS("水球出现");
-		}),
-		new(new Regex(@"^.{14} StartsCasting 14:.{8}:[^:]*:4826:"), g => {
+	public override List<StartsCasting> StartsCastingList => [
+		new(() => {
 			if (state != State.None) return;
 			InitParams();
-			ctsp1 = new();
-			var token = ctsp1.Token;
+			var token = CtsPool.CreateCts("P1");
 			Task.Run(async () => {
 				state = State.P1;
 				TTS("全屏AOE");
@@ -98,6 +76,43 @@ public class ScriptTEA : IScriptBase {
 				await Task.Delay(6000, token);
 				CheckP1HpDelta();
 			}, token);
+		}, Id: 0x4826)
+	];
+	public override List<(Regex, Action<GroupCollection>)> CustomList => [
+		new(new Regex(@"^.{14} Director 21:.{8}:400000(?:03|1[026]|05|11)"), _ => {
+			ActGlobals.oFormActMain.EndCombat(false);
+			ClearAllIGShape();
+			InitParams();
+			ResetCts();
+		}),
+		new(new Regex(@"^.{14} 260 104:.:1:.:1"), _ => {
+			InitParams();
+			ResetCts();
+		}),
+
+		#region P1
+
+		new(new Regex(@"^.{14} (?:\w+ )25:(?<id>[0-9A-F]{8}):(有生命活水|living liquid|リビングリキッド):"), g => {
+			id_shuijilao = g["id"].Value;
+		}),
+		new(new Regex(@"^.{14} (?:\w+ )25:(?<id>[0-9A-F]{8}):(活水之手|liquid limb|リキッドハンド):"), g => {
+			id_huoshuizhishou = g["id"].Value;
+		}),
+		new(new Regex(@"^.{14} AddCombatant 03:.{8}:.+:9215:"), g => {
+			TTS("水球出现");
+		}),
+		new(new Regex(@"^.{14} 261 105:Add:(?<id>.{8}):BNpcID:2C4A:BNpcNameID:23FE:"), g => {
+			if (!CtsPool.GetToken("P1", out var token)) return;
+			Task.Run(async () => {
+				var pos = Entity.GetEntityByID(g["id"].Value).Pos;
+				DrawShape(new IGCircle(pos, 8.8, 4000));
+				await Task.Delay(2000);
+				DrawShape(new IGCircle(pos, 8.8, 4000));
+				await Task.Delay(12600);
+				DrawShape(new IGCircle(pos, 8.8, 4000));
+				await Task.Delay(23300);
+				var party = ProxyPlugin.currentPartyInfo;
+			}, token);
 		}),
 
 		#endregion
@@ -105,8 +120,7 @@ public class ScriptTEA : IScriptBase {
 		#region P15
 
 		new(new Regex(@"^.{14} TargetIcon 1B:(?<targetId>.{8}):(?<player>.*?):(?:[^:]*:){2}(?<shadow_id>00(4F|5[0123456])):.{8}:"), g => {
-			ctsp1?.Cancel();
-			ctsp1?.Dispose();
+			CtsPool.DestroyCts("P1");
 			var mjid = Convert.ToInt32(g["shadow_id"].Value, 16) - 0x4F + 1;
 			if (g["targetId"].Value == Me_HexID().ToString("X8")) {
 				var sb = new StringBuilder(mjid.ToString());
@@ -142,15 +156,14 @@ public class ScriptTEA : IScriptBase {
 		#region P2
 
 		new(new Regex(@"^.{14} (?:\w+ )14:.{8}:[^:]*:483E:"), g => {
-			ctsp2 = new();
-			var token = ctsp2.Token;
+			var token = CtsPool.CreateCts("P2");
 			Task.Run(async () => {
 				state = State.P2;
 				TTS("上毒");
 				await Task.Delay(6500, token);
 				TTS("场外飞盘");
 				await Task.Delay(10000, token);
-				TTS("回场中后雪条清空");
+				TTS("回场中后血条清空");
 				await Task.Delay(18000, token);
 				TTS("3秒后水雷分摊");
 				await Task.Delay(6000, token);
@@ -172,38 +185,37 @@ public class ScriptTEA : IScriptBase {
 			}, token);
 		}),
 		new(new Regex(@"^.{14} StatusList 26:(?<id>[0-9A-F]{8}):(?<name>[^:]+):.*:085E:"), g => {
-			if (ctsp2 == null) return;
-			var token = ctsp2.Token;
-			Task.Run(async () => {
-				if (p2shui) return;
-				p2shui = true;
-				TTS(g["id"].Value == Me_HexID().ToString("X8") ? "水分摊点你" : "下次水分摊");
-				await Task.Delay(24000, token);
-				TTS("5秒后水分摊");
-				await Task.Delay(2000, token);
-				TTS("3");
-				await Task.Delay(1000, token);
-				TTS("2");
-				await Task.Delay(1200, token);
-				TTS("1");
-			}, token);
+			if (state != State.P2) return;
+			// if (!CtsPool.GetToken("P2", out var token)) return;
+			// Task.Run(async () => {
+			if (p2shui) return;
+			p2shui = true;
+			if (g["id"].Value == Me_HexID().ToString("X8")) TTS("水分摊点你");
+			// await Task.Delay(24000, token);
+			// TTS("5秒后分摊");
+			// await Task.Delay(2000, token);
+			// TTS("3");
+			// await Task.Delay(1000, token);
+			// TTS("2");
+			// await Task.Delay(1200, token);
+			// TTS("1");
+			// }, token);
 		}),
 		new(new Regex(@"^.{14} StatusList 26:(?<id>[0-9A-F]{8}):(?<name>[^:]+):.*:085F:"), g => {
-			if (ctsp2 == null) return;
-			var token = ctsp2.Token;
-			Task.Run(async () => {
-				if (p2lei) return;
-				p2lei = true;
-				TTS(g["id"].Value == Me_HexID().ToString("X8") ? "雷分摊点你" : "下次雷分摊");
-				await Task.Delay(24000, token);
-				TTS("5秒后雷分摊");
-				await Task.Delay(2000, token);
-				TTS("3");
-				await Task.Delay(1000, token);
-				TTS("2");
-				await Task.Delay(1200, token);
-				TTS("1");
-			}, token);
+			if (state != State.P2) return;
+			// Task.Run(async () => {
+			if (p2lei) return;
+			p2lei = true;
+			if (g["id"].Value == Me_HexID().ToString("X8")) TTS("雷分摊点你");
+			// await Task.Delay(24000, token);
+			// TTS("5秒后分摊");
+			// await Task.Delay(2000, token);
+			// TTS("3");
+			// await Task.Delay(1000, token);
+			// TTS("2");
+			// await Task.Delay(1200, token);
+			// TTS("1");
+			// }, token);
 		}),
 
 		#endregion
@@ -211,10 +223,8 @@ public class ScriptTEA : IScriptBase {
 		#region P3
 
 		new(new Regex(@"^.{14} (?:\w+ )14:.{8}:[^:]*:485A:"), g => {
-			ctsp2?.Cancel();
-			ctsp2?.Dispose();
-			ctsp3 = new();
-			var token = ctsp3.Token;
+			CtsPool.DestroyCts("P2");
+			var token = CtsPool.CreateCts("P3");
 			Task.Run(async () => {
 				state = State.P3;
 				Place("A:100,85;B:115,100;C:100,115;D:85,100;1:95,100;2:105,100");
@@ -249,41 +259,29 @@ public class ScriptTEA : IScriptBase {
 				TTS("骑士翅膀");
 			}, token);
 		}),
-		new(new Regex(@"^.{14} (?:\w+ )03:.{8}:(夏诺雅|Shanoa|シャノア):"), g => {
-			if (ctsp3 == null) return;
-			var token = ctsp3.Token;
+		new(new Regex(@"^.{14} AddCombatant 03:.{8}:(夏诺雅|Shanoa|シャノア):"), g => {
+			if (!CtsPool.GetToken("P3", out var token)) return;
 			Task.Run(async () => {
 				await Task.Delay(33000, token);
-				Place("A:96,100;B:100,96;C:106,100,115;D:100,104;1:95,100;2:105,100");
+				Place("A:96,100;B:100,96;C:106,100;D:100,104;1:95,100;2:105,100");
 				await Task.Delay(22000, token);
 				Place("A:100,85;B:115,100;C:100,115;D:85,100;1:100,100;2:clear");
 			}, token);
 		}),
-		new(new Regex(@"^.{14} (?:\w+ )1[56]:[0-9A-F]{8}:(?<name>[^:]+?):485B:.+:121.50:0.00:-3.14:[0-9A-F]{8}:0"), g => {
-			Place("A:95,82;B:105,82;C:95,92;D:105,92;");
-		}),
-		new(new Regex(@"^.{14} (?:\w+ )1[56]:[0-9A-F]{8}:(?<name>[^:]+):485B:.+:78.5:4.265151E-15:-4.792213E-05:[0-9A-F]{8}:0|^.{14} ActionEffect 1[56]:[0-9A-F]{8}:(?<name>[^:]+):485B:.+:100.00:78.50:0.00:"), g => {
-			Place("A:95,118;B:105,118;C:95,108;D:105,108;");
+		new(new Regex(@"^.{14} StartsCasting 14:.{8}:.+?:485B:[^:]*:.{8}:[^:]*:[^:]*:[^:]*:(?<y>[^:]*):"), g => {
+			var y = float.Parse(g["y"].Value);
+			if (y > 120) Place("A:95,82;B:105,82;C:95,92;D:105,92");
+			else if (y < 80) Place("A:95,118;B:105,118;C:95,108;D:105,108");
 		}),
 
 		#endregion
 	];
 
-	private void ResetCts() {
-		ctsp1?.Cancel();
-		ctsp1?.Dispose();
-		ctsp1 = null;
-		ctsp2?.Cancel();
-		ctsp2?.Dispose();
-		ctsp2 = null;
-		ctsp3?.Cancel();
-		ctsp3?.Dispose();
-		ctsp3 = null;
-	}
-
 	private void InitParams() {
 		id_shuijilao = null;
 		id_huoshuizhishou = null;
 		state = State.None;
+		p2shui = false;
+		p2lei = false;
 	}
 }

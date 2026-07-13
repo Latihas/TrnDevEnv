@@ -1372,7 +1372,7 @@ public class ScriptUwU : IScriptBase {
 	private static string GetPScale(string name) => GetScalarVariable(true, "ptuw_" + name);
 
 	private static void PostTip(string text, float x = 0, float y = 0, string id = "main", bool tts = true) {
-		RealPlugin.Instance.QueueAction(fakectx, _tri, null,
+		RealPlugin.Instance.QueueAction(fakectx, faketri, null,
 			new ActionOld {
 				ActionType = ActionOld.ActionTypeEnum.TextAura,
 				TextAuraOp = nameof(ActionOld.AuraOpEnum.ActivateAura),

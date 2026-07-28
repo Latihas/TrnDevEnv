@@ -35,7 +35,6 @@ public class ScriptUwU : IScriptBase {
 	private readonly List<Player> Threebuckets = [];
 
 	private readonly List<Zhuzi> Zhuzis = [];
-	private CancellationTokenSource? ctssimple, ctsp1, ctsp2, ctsp3, ctsp41, ctsp42, ctsp43, ctsp5;
 	private string? hs, ttsafe;
 	private int p43dhCount;
 	private List<DHP43> p43dhDist = [];
@@ -93,8 +92,7 @@ public class ScriptUwU : IScriptBase {
 			TTS("站位，坦克LB1");
 		}),
 		new(new Regex(@"^.{14} StatusAdd 1A:5FC:[^:]+:(?<time>[^:]+):"), g => {
-			if (ctssimple == null) return;
-			var token = ctssimple.Token;
+			if (!CtsPool.GetToken("simple", out var token)) return;
 			Task.Run(async () => {
 				await Task.Delay(((int)float.Parse(g["time"].Value) - 3) * 1000, token);
 				TTS("准备爆炸");
@@ -111,8 +109,7 @@ public class ScriptUwU : IScriptBase {
 			if (id == ciyu.zid && !ciyu.cs2) Broadcast($"羽炸: {ciyu.dmg}");
 		}),
 		new(new Regex(@"^.{14} StartsCasting 14:.{8}:[^:]+:2B5F:"), _ => {
-			if (ctssimple == null) return;
-			var token = ctssimple.Token;
+			if (!CtsPool.GetToken("simple", out var token)) return;
 			Task.Run(async () => {
 				await Task.Delay(2000, token);
 				Beep(2000, 300);
@@ -144,8 +141,7 @@ public class ScriptUwU : IScriptBase {
 			Broadcast("已觉醒");
 		}),
 		new(new Regex(@"^.{14} StartsCasting 14:.{8}:[^:]+:2B74:"), _ => {
-			if (ctssimple == null) return;
-			var token = ctssimple.Token;
+			if (!CtsPool.GetToken("simple", out var token)) return;
 			Task.Run(async () => {
 				await Task.Delay(2000, token);
 				TTS("近战LB");
@@ -173,9 +169,8 @@ public class ScriptUwU : IScriptBase {
 
 		new(new Regex(@"^.{14} (?:\w+ )00:0044:(迦楼罗|Garuda|ガルーダ):(哈哈哈哈哈！ 你们这些蝼蚁只有被我的狂风吹散的下场|Heehee HAHA hahaha HEEHEE haha HEEEEEE!!!|無残に散れッ！)"), _ => {
 			InitParams();
-			ctsp1 = new();
-			ctssimple = new();
-			var token = ctsp1.Token;
+			var token = CtsPool.CreateCts("P1");
+			CtsPool.CreateCts("simple");
 			Task.Run(async () => {
 				Place(StaticPlace.initPlace);
 				Place(StaticPlace.clear2);
@@ -271,11 +266,8 @@ public class ScriptUwU : IScriptBase {
 		#region P2
 
 		new(new Regex(@"^.{14} (?:\w+ )00:0044:(迦楼罗|Garuda|ガルーダ):(怎……怎么可能……区区蝼蚁……|My power... No...|お、おのれ……クソ虫がぁぁぁぁぁッ！！！)"), _ => {
-			ctsp1?.Cancel();
-			ctsp1?.Dispose();
-			ctsp1 = null;
-			ctsp2 = new();
-			var token = ctsp2.Token;
+			CtsPool.DestroyCts("P1");
+			var token = CtsPool.CreateCts("P2");
 			Task.Run(async () => {
 				state = State.P2Start;
 				TTS("开疾跑");
@@ -365,11 +357,8 @@ public class ScriptUwU : IScriptBase {
 		#region P3
 
 		new(new Regex(@"^.{14} (?:ActionEffect 15|AOEActionEffect 16):.{8}:(?<sname>[^:]+):(?<jid>[^:]+):(?<jname>[^:]+):(?<tid>.{8}):.+:26870:0:10000"), _ => {
-			ctsp2?.Cancel();
-			ctsp2?.Dispose();
-			ctsp2 = null;
-			ctsp3 = new();
-			var token = ctsp3.Token;
+			CtsPool.DestroyCts("P2");
+			var token = CtsPool.CreateCts("P3");
 			Task.Run(async () => {
 				state = State.P3Start;
 				Place(StaticPlace.initPlace);
@@ -458,14 +447,11 @@ public class ScriptUwU : IScriptBase {
 		#region P41
 
 		new(new Regex(@"^.{14} (?:\w+ )00:0044:(泰坦|Titan|タイタン):(我的……孩子们……终有一日……|Hie, my children, into the dark!|ぬぬぬぬ……無念……)"), _ => {
-			ctsp3?.Cancel();
-			ctsp3?.Dispose();
-			ctsp3 = null;
+			CtsPool.DestroyCts("P3");
 			state = State.P4Start;
 		}),
 		new(new Regex(@"^.{14} (?:\w+ )14:.{8}:[^:]*:2B76:"), _ => {
-			ctsp41 = new();
-			var token = ctsp41.Token;
+			var token = CtsPool.CreateCts("P41");
 			Task.Run(async () => {
 				state = State.P41;
 				TTS("读条一运");
@@ -500,8 +486,7 @@ public class ScriptUwU : IScriptBase {
 		}),
 		new(new Regex(@"^.{14} StartsCasting 14:.{8}:[^:]+:2B7D:"), _ => {
 			if (state != State.P41) return;
-			if (ctsp41 == null) return;
-			var token = ctsp41.Token;
+			if (!CtsPool.GetToken("P41", out var token)) return;
 			Task.Run(async () => {
 				TTS("地火准备");
 				Place(StaticPlace.p41place2);
@@ -529,11 +514,8 @@ public class ScriptUwU : IScriptBase {
 		#region P42
 
 		new(new Regex(@"^.{14} (?:\w+ )14:.{8}:[^:]*:2D4C:"), _ => {
-			ctsp41?.Cancel();
-			ctsp41?.Dispose();
-			ctsp41 = null;
-			ctsp42 = new();
-			var token = ctsp42.Token;
+			CtsPool.DestroyCts("P41");
+			var token = CtsPool.CreateCts("P42");
 			Task.Run(async () => {
 				state = State.P42;
 				TTS("读条二运，神兵左侧集合");
@@ -572,11 +554,8 @@ public class ScriptUwU : IScriptBase {
 		#region P43
 
 		new(new Regex(@"^.{14} (?:\w+ )14:.{8}:[^:]*:2D4D:"), _ => {
-			ctsp42?.Cancel();
-			ctsp42?.Dispose();
-			ctsp42 = null;
-			ctsp43 = new();
-			var token = ctsp43.Token;
+			CtsPool.DestroyCts("P42");
+			var token = CtsPool.CreateCts("P43");
 			Task.Run(async () => {
 				state = State.P43;
 				TTS("读条三运，准备站位");
@@ -623,11 +602,8 @@ public class ScriptUwU : IScriptBase {
 		#region P5
 
 		new(new Regex(@"^.{14} (?:\w+ )14:.{8}:[^:]+:2B88:"), _ => {
-			ctsp43?.Cancel();
-			ctsp43?.Dispose();
-			ctsp43 = null;
-			ctsp5 = new();
-			var token = ctsp5.Token;
+			CtsPool.DestroyCts("P43");
+			var token = CtsPool.CreateCts("P5");
 			Task.Run(async () => {
 				state = State.P5;
 				Place(StaticPlace.p42place2);
@@ -638,9 +614,8 @@ public class ScriptUwU : IScriptBase {
 			}, token);
 		}),
 		new(new Regex(@"^.{14} (?:\w+ )14:.{8}:[^:]+:2CD5:"), _ => {
-			if (jzhStarted || ctsp5 == null) return;
+			if (jzhStarted || !CtsPool.GetToken("P5", out var token)) return;
 			jzhStarted = true;
-			var token = ctsp5.Token;
 			Task.Run(async () => {
 				TTS("土火风，三连流沙");
 				await Task.Delay(2000, token);
@@ -668,9 +643,8 @@ public class ScriptUwU : IScriptBase {
 			}, token);
 		}),
 		new(new Regex(@"^.{14} (?:\w+ )14:.{8}:[^:]+:2CD4:"), _ => {
-			if (jzhStarted || ctsp5 == null) return;
+			if (jzhStarted || !CtsPool.GetToken("P5", out var token)) return;
 			jzhStarted = true;
-			var token = ctsp5.Token;
 			Task.Run(async () => {
 				TTS("火风土，开疾跑");
 				await Task.Delay(6000, token);
@@ -695,9 +669,8 @@ public class ScriptUwU : IScriptBase {
 			}, token);
 		}),
 		new(new Regex(@"^.{14} (?:\w+ )14:.{8}:[^:]+:2CD3:"), _ => {
-			if (jzhStarted || ctsp5 == null) return;
+			if (jzhStarted || !CtsPool.GetToken("P5", out var token)) return;
 			jzhStarted = true;
-			var token = ctsp5.Token;
 			Task.Run(async () => {
 				TTS("风火土，从侧边穿钢铁月环，去3点");
 				jzh3(false);
@@ -766,32 +739,32 @@ public class ScriptUwU : IScriptBase {
 		lbfull = false;
 	}
 
-	private void ResetCts() {
-		ctssimple?.Cancel();
-		ctssimple?.Dispose();
-		ctssimple = null;
-		ctsp1?.Cancel();
-		ctsp1?.Dispose();
-		ctsp1 = null;
-		ctsp2?.Cancel();
-		ctsp2?.Dispose();
-		ctsp2 = null;
-		ctsp3?.Cancel();
-		ctsp3?.Dispose();
-		ctsp3 = null;
-		ctsp41?.Cancel();
-		ctsp41?.Dispose();
-		ctsp41 = null;
-		ctsp42?.Cancel();
-		ctsp42?.Dispose();
-		ctsp42 = null;
-		ctsp43?.Cancel();
-		ctsp43?.Dispose();
-		ctsp43 = null;
-		ctsp5?.Cancel();
-		ctsp5?.Dispose();
-		ctsp5 = null;
-	}
+	// private void ResetCts() {
+	// 	ctssimple?.Cancel();
+	// 	ctssimple?.Dispose();
+	// 	ctssimple = null;
+	// 	ctsp1?.Cancel();
+	// 	ctsp1?.Dispose();
+	// 	ctsp1 = null;
+	// 	ctsp2?.Cancel();
+	// 	ctsp2?.Dispose();
+	// 	ctsp2 = null;
+	// 	ctsp3?.Cancel();
+	// 	ctsp3?.Dispose();
+	// 	ctsp3 = null;
+	// 	ctsp41?.Cancel();
+	// 	ctsp41?.Dispose();
+	// 	ctsp41 = null;
+	// 	ctsp42?.Cancel();
+	// 	ctsp42?.Dispose();
+	// 	ctsp42 = null;
+	// 	ctsp43?.Cancel();
+	// 	ctsp43?.Dispose();
+	// 	ctsp43 = null;
+	// 	ctsp5?.Cancel();
+	// 	ctsp5?.Dispose();
+	// 	ctsp5 = null;
+	// }
 
 	private static void ShowConfigForm(GroupCollection _) {
 		TTS("正在打开配置，请检查后台窗口");
@@ -873,13 +846,11 @@ public class ScriptUwU : IScriptBase {
 			"右东" => StaticPlace.safeB
 		});
 		if (Uauto) Log($"可能安全点:{string.Join("|", esresult)}。神兵:{jjsb_dir},土神:{tt_dir},火神:{yflt_dir}。");
-		if (ctssimple != null) {
-			var token = ctssimple.Token;
+		if (CtsPool.GetToken("simple", out var token))
 			Task.Run(async () => {
 				await Task.Delay(recommand.canES ? 1000 : 6000, token);
 				Place($"4:{recommand.after.X},{recommand.after.Y}");
 			}, token);
-		}
 	}
 
 	private void p43dh_fq(string s, string desc) {
@@ -1491,15 +1462,13 @@ public class ScriptUwU : IScriptBase {
 						if (Threebuckets[0].name == MyName) PostTip("一桶点你");
 						else if (Threebuckets[1].name == MyName) PostTip("二桶点你");
 						else if (Threebuckets[2].name == MyName) PostTip("三桶点你");
-						if (ctssimple != null) {
-							var token = ctssimple.Token;
+						if (CtsPool.GetToken("simple", out var token))
 							Task.Run(async () => {
 								await Task.Delay(9000, token);
 								RealPlugin.Instance.InvokeNamedCallback("command", "/mk attack1 <attack1>");
 								RealPlugin.Instance.InvokeNamedCallback("command", "/mk attack2 <attack2>");
 								RealPlugin.Instance.InvokeNamedCallback("command", "/mk attack3 <attack3>");
 							}, token);
-						}
 					} else {
 						RealPlugin.Instance.InvokeNamedCallback("command", $"/e attack1 <{Threebuckets[0].partyorder}>");
 						RealPlugin.Instance.InvokeNamedCallback("command", $"/e attack2 <{Threebuckets[1].partyorder}>");

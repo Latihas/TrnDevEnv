@@ -135,11 +135,11 @@ public class ScriptTEA : IScriptBase {
 				};
 				// if(en.CurrentHP>0) DrawShape(new IGCircle(a, 8.8, 4000, color: 0x20FFFFFFu));
 				await Task.Delay(2000);
-				if (en().CurrentHP > 0) DrawShape(new IGCircle(a, 8.8, 4000, color: 0x20FFFFFFu));
+				if (en().CurrentHP > 0) DrawShape(new IGCircle(a, 8.8, 4000, 0x20FFFFFFu));
 				await Task.Delay(12600);
-				if (en().CurrentHP > 0) DrawShape(new IGCircle(a, 8.8, 4000, color: 0x20FFFFFFu));
+				if (en().CurrentHP > 0) DrawShape(new IGCircle(a, 8.8, 4000, 0x20FFFFFFu));
 				await Task.Delay(23300);
-				if (en().CurrentHP > 0) DrawShape(new IGCircle(a, 8.8, 4000, color: 0x20FFFFFFu));
+				if (en().CurrentHP > 0) DrawShape(new IGCircle(a, 8.8, 4000, 0x20FFFFFFu));
 				// var party = ProxyPlugin.currentPartyInfo;
 			}, token);
 		}),

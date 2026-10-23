@@ -9,6 +9,7 @@ using Triggernometry.FFXIV;
 using Triggernometry.PScript;
 using TriggernometryProxy;
 using static Triggernometry.PScript.ScriptUtils;
+// ReSharper disable All
 
 public class ScriptBA : IScriptBase {
 	public string mdbw = "";

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Dalamud.NET.Sdk/15.0.0">
 	<PropertyGroup>
 		<OutputType>library</OutputType>
-		<NoWarn>CA1050</NoWarn>
+		<WarningLevel>0</WarningLevel>
 		<Use_DalamudPackager>false</Use_DalamudPackager>
 	</PropertyGroup>
 	<ItemGroup>

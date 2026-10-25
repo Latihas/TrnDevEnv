@@ -1512,7 +1512,7 @@ public class ScriptUwU : IScriptBase {
 			configForm.AddOption(P3VFXMode, VFXSetting);
 			configForm.AddOption(Umarklocal, VFXSetting);
 			configForm.AddOption(P5VFXMode, VFXSetting);
-			var partylist = new PartyListPanel(Enum.GetValues<Jobs>().Select(i => i.ToString()).ToArray());
+			var partylist = new PartyListPanel([.. Enum.GetValues<Jobs>().Select(i => i.ToString())]);
 			configForm.AddPartyGroup(" 队员顺序保证和游戏内一致 ", partylist);
 			configForm.Run();
 			configForm.FormClosing += (_, _) => {
@@ -1521,7 +1521,7 @@ public class ScriptUwU : IScriptBase {
 				string[]? plist = null;
 				lock (vs.List) {
 					if (vs.List.TryGetValue(partylist.PlayerIdsLvarName, out var party)) {
-						plist = party.Values.Select(i => (i as VariableScalar)?.Value).Where(i => !string.IsNullOrEmpty(i)).Cast<string>().ToArray();
+						plist = [.. party.Values.Select(i => (i as VariableScalar)?.Value).Where(i => !string.IsNullOrEmpty(i)).Cast<string>()];
 						valid = party.Size == partylist.PlayerCount && plist.Length == partylist.PlayerCount;
 					}
 				}
